@@ -36,19 +36,18 @@ class PromptDetail(APIView):
         """Show one Prompt"""
         prompt = get_object_or_404(Prompt, pk=pk)
 
-        # if not request.user.id == mango.owner.id:
-        #     raise PermissionDenied('Unauthorized, you do not own this mango')
-
-        # Run the data through the serializer so it's formatted
         data = PromptSerializer(prompt).data
         return Response({ 'prompt': data })
 
     def patch(self, request, pk):
         """Update a Prompt"""
+        print('request: ', request.data)
         prompt = get_object_or_404(Prompt, pk=pk)
-        ms = PromptSerializer(prompt, data=request.data, partial=True)
+        print('prompt: ', prompt)
+        ms = PromptSerializer(prompt, data=request.data['prompt'], partial=True)
         if ms.is_valid():
             ms.save()
+            print('ms.data: ', ms.data)
             return Response(ms.data)
         return Response(ms.errors, status=status.HTTP_400_BAD_REQUEST)
 
