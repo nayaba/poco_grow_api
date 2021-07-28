@@ -6,6 +6,9 @@ from .models import Prompt
 from .serializers import PromptSerializer
 # from .serializers import PromptReadSerializer
 
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
+
 
 # from django.http import JsonResponse
 
@@ -31,10 +34,13 @@ class Prompts(APIView):
 
 
 class PromptDetail(APIView):
-    permission_classes=()
+    permission_classes=(IsAuthenticated,)
     def get(self, request, pk):
         """Show one Prompt"""
         prompt = get_object_or_404(Prompt, pk=pk)
+
+        if not request.user.id == prompt.owner.id:
+            raise PermissionDenied('Unauthorized, you do not own this prompt')
 
         data = PromptSerializer(prompt).data
         return Response({ 'prompt': data })
