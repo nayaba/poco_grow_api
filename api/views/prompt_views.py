@@ -1,9 +1,9 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from .models import Prompt
-from .serializers import PromptSerializer
+from rest_framework import generics, status
+from ..models.prompt import Prompt
+from ..serializers import PromptSerializer
 # from .serializers import PromptReadSerializer
 
 from rest_framework.permissions import IsAuthenticated
@@ -12,13 +12,14 @@ from rest_framework.exceptions import PermissionDenied
 
 # from django.http import JsonResponse
 
-class Prompts(APIView):
+class Prompts(generics.ListCreateAPIView):
     permission_classes=(IsAuthenticated,)
     serializer_class=PromptSerializer
 
     def get(self, request):
         """Index Request"""
-        prompts = Prompt.objects.all()
+        # prompts = Prompt.objects.all()
+        prompts = Prompt.objects.filter(owner=request.user.id)
         data = PromptSerializer(prompts, many=True).data
         return Response({"prompt": data})
         # prompts = Prompt.objects.filter(owner=request.user.id)
@@ -42,8 +43,7 @@ class PromptDetail(APIView):
 
         if not request.user.id == prompt.owner.id:
             raise PermissionDenied('Unauthorized, you do not own this prompt')
-        print('request.user.id: ', request.user.id)
-        print('prompt.owner.id: ', prompt.owner.id)
+
         data = PromptSerializer(prompt).data
         return Response({ 'prompt': data })
 
@@ -62,9 +62,5 @@ class PromptDetail(APIView):
     def delete(self, request, pk):
         """Delete Request"""
         prompt = get_object_or_404(Prompt, pk=pk)
-        if not request.user.id == prompt.owner.id:
-            raise PermissionDenied('Unauthorized, you do not own this prompt')
-        print('request.user.id: ', request.user.id)
-        print('prompt.owner.id: ', prompt.owner.id)
         prompt.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
