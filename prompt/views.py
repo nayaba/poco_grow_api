@@ -18,7 +18,7 @@ class Prompts(APIView):
 
     def get(self, request):
         """Index Request"""
-        prompts = Prompt.objects.all()
+        prompts = Prompt.objects.filter(owner=request.user.id)
         data = PromptSerializer(prompts, many=True).data
         return Response({"prompt": data})
         # prompts = Prompt.objects.filter(owner=request.user.id)
